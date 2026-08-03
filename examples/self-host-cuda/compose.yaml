@@ -1,0 +1,66 @@
+services:
+  workspace:
+    image: ${SELF_HOST_IMAGE:-self-host-cuda:12.8.1-ubuntu24.04}
+    container_name: ${CONTAINER_NAME:-self-host-cuda}
+    hostname: ${CONTAINER_HOSTNAME:-self-host-cuda}
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      INITIAL_ROOT_PASSWORD: ${INITIAL_ROOT_PASSWORD:-}
+      INITIAL_ROOT_PASSWORD_FILE: ${INITIAL_ROOT_PASSWORD_FILE:-}
+      SSH_PUBLIC_KEY: ${SSH_PUBLIC_KEY:-}
+      SSH_AUTHORIZED_KEYS_FILE: ${SSH_AUTHORIZED_KEYS_FILE:-}
+      NVIDIA_VISIBLE_DEVICES: ${NVIDIA_VISIBLE_DEVICES:-all}
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility
+      HF_HOME: /root/.cache/huggingface
+      TORCH_HOME: /root/.cache/torch
+    ports:
+      - "${SSH_HOST_PORT:-2222}:22"
+      - "${JUPYTER_HOST_PORT:-8888}:8888"
+      - "${TENSORBOARD_HOST_PORT:-6006}:6006"
+    volumes:
+      - self-host-root:/root
+      - self-host-workspace:/workspace
+      - self-host-state:/var/lib/self-host
+      - ${PROJECTS_DIR:-./projects}:/workspace/projects
+      - ${DATA_DIR:-./data}:/data
+      # Optional initial-password file. Set INITIAL_ROOT_PASSWORD_FILE=/run/secrets/root-password.
+      # - ${INITIAL_ROOT_PASSWORD_PATH:-./root-password}:/run/secrets/root-password:ro
+      # Optional public-key file. Set SSH_AUTHORIZED_KEYS_FILE=/run/secrets/authorized_keys.
+      # - ${SSH_AUTHORIZED_KEYS_PATH:-./authorized_keys}:/run/secrets/authorized_keys:ro
+    shm_size: ${SHM_SIZE:-16gb}
+    cpus: ${CPU_LIMIT:-16}
+    mem_limit: ${MEMORY_LIMIT:-64g}
+    pids_limit: ${PIDS_LIMIT:-4096}
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 1048576
+        hard: 1048576
+      stack:
+        soft: 67108864
+        hard: 67108864
+    cap_add:
+      - IPC_LOCK
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: ${CPU_LIMIT:-16}
+          memory: ${MEMORY_LIMIT:-64g}
+          pids: ${PIDS_LIMIT:-4096}
+        reservations:
+          devices:
+            - driver: nvidia
+              count: ${GPU_COUNT:-all}
+              capabilities:
+                - gpu
+    stop_grace_period: 30s
+
+volumes:
+  self-host-root:
+  self-host-workspace:
+  self-host-state:

@@ -1,6 +1,6 @@
 # Runtime Container Images
 
-本仓库维护面向 ModelArts 的多运行环境镜像，当前包含 CANN 和 CUDA 样例，并集成 GitHub Actions 构建、发布和批量发布流程。
+本仓库维护面向 ModelArts 和 self-host 场景的多运行环境镜像，当前包含 CANN 和 CUDA 镜像，并集成 GitHub Actions 构建、发布和批量发布流程。
 
 ## 目录结构
 
@@ -12,12 +12,13 @@ scripts/image_metadata.py                    # CI 和本地脚本共用的元数
 scripts/prepare_image_context.sh             # 构建前同步同类 scripts 到目标上下文
 scripts/build_image.sh                       # 本地构建脚本
 scripts/publish_image.sh                     # 本地 buildx 发布脚本
+examples/self-host-cuda/                     # Self-host Compose 示例和使用说明
 .github/workflows/build_images.yml
 .github/workflows/build_and_push_image.yml
 .github/workflows/batch_build_and_push_images.yml
 ```
 
-目录前两级用于发布分类：`images/modelarts/cann/...` 发布到 `modelarts-cann`，`images/modelarts/cuda/...` 发布到 `modelarts-cuda`。
+目录前两级用于发布分类：`images/modelarts/cann/...` 发布到 `modelarts-cann`，`images/modelarts/cuda/...` 发布到 `modelarts-cuda`，`images/self-host/cuda/...` 发布到 `self-host-cuda`。
 
 ## 当前镜像
 
@@ -30,6 +31,7 @@ scripts/publish_image.sh                     # 本地 buildx 发布脚本
 | `modelarts-cann` | `9.0.0-a3-ubuntu22.04`    | `ascendai/cann:9.0.0-a3-ubuntu22.04-py3.11`   | `ma-user` |
 | `modelarts-cuda` | `11.3.1-v100-ubuntu20.04` | `nvidia/cuda:11.3.1-cudnn8-devel-ubuntu20.04` | `ma-user` |
 | `modelarts-cuda` | `12.6.1-v100-ubuntu24.04` | `nvidia/cuda:12.6.1-cudnn-devel-ubuntu24.04`  | `ma-user` |
+| `self-host-cuda` | `12.8.1-ubuntu24.04`      | `nvidia/cuda:12.8.1-cudnn-devel-ubuntu24.04` | `root`    |
 
 CANN 的 `9.0.0-910b-ubuntu22.04` 是模板目录，其它芯片版本由 `derived_chips` 自动展开，构建时仅替换 Dockerfile 顶层 `BASE_IMAGE`。CUDA 样例没有配置 `derived_chips`，会按实际目录直接构建。
 
@@ -54,7 +56,24 @@ IMAGE_REPOSITORY=modelarts-cuda \
 
 IMAGE_REPOSITORY=modelarts-cuda \
   scripts/build_image.sh 12.6.1-v100-ubuntu24.04
+
+IMAGE_REPOSITORY=self-host-cuda \
+  scripts/build_image.sh 12.8.1-ubuntu24.04
 ```
+
+## Self-host 使用
+
+CUDA 12.8 self-host 镜像包含 Ubuntu 24.04、CUDA/cuDNN 开发环境、Python 3.12、PyTorch 2.9.1/cu128、常用机器学习包、编译工具和 SSH 服务。Compose 示例提供 GPU 映射、CPU/内存/PID/共享内存限制，以及 root home、workspace、数据目录和初始化状态持久化：
+
+```bash
+cd examples/self-host-cuda
+cp .env.example .env
+mkdir -p projects data
+docker compose up -d
+ssh -p 2222 root@localhost
+```
+
+`INITIAL_ROOT_PASSWORD` 只在首次初始化时生效。初始化后应从 `.env` 删除密码并重建容器，使明文密码不再保留在容器环境中。完整配置、安全说明和“持久化整个容器”的缺点见 [examples/self-host-cuda/README.md](examples/self-host-cuda/README.md)。
 
 发布镜像：
 

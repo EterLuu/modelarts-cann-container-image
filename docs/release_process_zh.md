@@ -2,7 +2,7 @@
 
 本文档说明如何维护和发布 `images/<platform>/<runtime>/*` 下的运行环境镜像。流程是：PR 中完成构建验证，合并后通过手动 workflow 发布镜像。
 
-目录前两级会用于发布分类：`images/modelarts/cann/...` 发布到 `modelarts-cann`，`images/modelarts/cuda/...` 发布到 `modelarts-cuda`。
+目录前两级会用于发布分类：`images/modelarts/cann/...` 发布到 `modelarts-cann`，`images/modelarts/cuda/...` 发布到 `modelarts-cuda`，`images/self-host/cuda/...` 发布到 `self-host-cuda`。
 
 ## 1. 目录和标签
 
@@ -17,6 +17,7 @@ images/<platform>/<runtime>/<tag>/Dockerfile
 ```text
 images/modelarts/cann/9.0.0-910b-ubuntu22.04/Dockerfile
 images/modelarts/cuda/12.6.1-v100-ubuntu24.04/Dockerfile
+images/self-host/cuda/12.8.1-ubuntu24.04/Dockerfile
 ```
 
 CANN 模板可以通过 `chip` 和 `derived_chips` 自动衍生 tag：

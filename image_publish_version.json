@@ -59,6 +59,24 @@
           "artifact_arch": "amd64"
         }
       ]
+    },
+    {
+      "image_version": "12.8.1",
+      "path": "images/self-host/cuda/12.8.1-ubuntu24.04",
+      "tags": ["12.8.1-ubuntu24.04"],
+      "base_image": "nvidia/cuda:12.8.1-cudnn-devel-ubuntu24.04",
+      "cuda_version": "12.8.1",
+      "os": "ubuntu",
+      "os_version": "24.04",
+      "python_version": "3.12",
+      "default_python_env": "/opt/venv",
+      "arches": [
+        {
+          "platform": "linux/amd64",
+          "runner": "ubuntu-latest",
+          "artifact_arch": "amd64"
+        }
+      ]
     }
   ]
 }
